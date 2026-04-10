@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For You 🤍</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #fffaf0;
+            --primary-pink: #ffb7c5;
+            --text-color: #5d576b;
+            --white: #ffffff;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Nunito', sans-serif; background-color: var(--bg-color); display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+        .bg-gradient { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 50% 50%, #fff 0%, #fffaf0 100%); z-index: -1; }
+        .container { width: 90%; max-width: 400px; text-align: center; background: var(--white); padding: 2.5rem; border-radius: 30px; box-shadow: var(--shadow); position: relative; z-index: 1; }
+        .screen { display: none; opacity: 0; transform: translateY(20px); transition: opacity 0.5s ease, transform 0.5s ease; }
+        .screen.active { display: block; opacity: 1; transform: translateY(0); }
+        .gif-container { width: 160px; height: 160px; margin: 0 auto 1.5rem; border-radius: 20px; overflow: hidden; }
+        .gif-container img { width: 100%; height: 100%; object-fit: contain; }
+        h1 { font-size: 1.3rem; margin-bottom: 2rem; font-weight: 600; color: var(--text-color); }
+        .btn-group { display: flex; justify-content: center; gap: 15px; position: relative; min-height: 60px; }
+        button { padding: 12px 28px; border: none; border-radius: 50px; font-weight: 600; cursor: pointer; transition: var(--transition); }
+        .btn-yes { background-color: var(--primary-pink); color: white; }
+        .btn-no { background-color: #f0f0f0; color: #999; }
+        #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100; }
+    </style>
+</head>
+<body>
+
+    <div class="bg-gradient"></div>
+    <canvas id="confetti-canvas"></canvas>
+
+    <div style="display:none;">
+        <img src="assets/sad1.gif">
+        <img src="assets/sad2.gif">
+        <img src="assets/love.gif">
+        <img src="assets/final.gif">
+    </div>
+
+    <div class="container">
+        <div id="screen1" class="screen active">
+            <div class="gif-container">
+                <img id="gif1" src="assets/sad1.gif">
+            </div>
+            <h1 id="text1">i'm sorry for being mean to you. forgive me?</h1>
+            <div class="btn-group">
+                <button class="btn-yes" onclick="nextScreen(2)">okay</button>
+                <button id="noBtn1" class="btn-no" onclick="handleNo1()">no</button>
+            </div>
+        </div>
+
+        <div id="screen2" class="screen">
+            <div class="gif-container">
+                <img src="assets/love.gif">
+            </div>
+            <h1>i love you so much 🤍</h1>
+            <div class="btn-group">
+                <button id="yesBtn2" class="btn-yes" onclick="nextScreen(3)">i love you too</button>
+                <button id="noBtn2" class="btn-no">no</button>
+            </div>
+        </div>
+
+        <div id="screen3" class="screen">
+            <div class="gif-container">
+                <img src="assets/final.gif">
+            </div>
+            <h1>i'll do better, i promise.</h1>
+            <p style="margin-top: 10px; font-size: 0.9rem; color: #ffb7c5;">always. 🤍</p>
+        </div>
+    </div>
+
+    <script>
+        // STEP 1 LOGIC
+        let noCount = 0;
+        const messages = ["are you sure? 🥺", "pwease??", "don't do this... 😭", "madam ji come on !", "forgive me?"];
+        const gifs = ["assets/sad2.gif", "assets/sad1.gif"];
+
+        function handleNo1() {
+            document.getElementById('text1').innerText = messages[noCount % messages.length];
+            document.getElementById('gif1').src = gifs[noCount % gifs.length];
+            noCount++;
+        }
+
+        // STEP 2 LOGIC (Avoidance)
+        const noBtn2 = document.getElementById('noBtn2');
+        const yesBtn2 = document.getElementById('yesBtn2');
+        let yesSize = 1;
+
+        function moveButton() {
+            const x = Math.random() * (window.innerWidth - 200) - (window.innerWidth/2 - 100);
+            const y = Math.random() * (window.innerHeight - 200) - (window.innerHeight/2 - 100);
+            noBtn2.style.transform = `translate(${x/2}px, ${y/2}px)`;
+            
+            yesSize += 0.15;
+            yesBtn2.style.transform = `scale(${yesSize})`;
+        }
+
+        noBtn2.addEventListener('mouseover', moveButton);
+        noBtn2.addEventListener('touchstart', (e) => { e.preventDefault(); moveButton(); });
+
+        // NAVIGATION
+        function nextScreen(num) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            setTimeout(() => {
+                document.getElementById(`screen${num}`).classList.add('active');
+                if(num === 3) startConfetti();
+            }, 350);
+        }
+
+        // CONFETTI
+        function startConfetti() {
+            const canvas = document.getElementById('confetti-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            let p = [];
+            for(let i=0; i<60; i++) p.push({x: Math.random()*canvas.width, y: -20, s: Math.random()*6+4, c: `hsl(${Math.random()*360}, 80%, 80%)`, v: Math.random()*3+2});
+            function draw() {
+                ctx.clearRect(0,0,canvas.width,canvas.height);
+                p.forEach(part => {
+                    ctx.fillStyle = part.c;
+                    ctx.beginPath(); ctx.arc(part.x, part.y, part.s/2, 0, Math.PI*2); ctx.fill();
+                    part.y += part.v;
+                    if(part.y > canvas.height) part.y = -20;
+                });
+                requestAnimationFrame(draw);
+            }
+            draw();
+        }
+    </script>
+</body>
+</html>
